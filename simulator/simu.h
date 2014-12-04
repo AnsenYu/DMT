@@ -164,7 +164,7 @@ class Pnet{
 private:
 	std::vector<Pnode*> pnodes;
 	std::vector<Vnet*> vnets;
-	unsigned resource;
+	long long resource;
 public:
 	std::vector<unsigned> widthsOption;
 	GlobalIDMaster* pgm;

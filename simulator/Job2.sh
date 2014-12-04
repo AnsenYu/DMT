@@ -16,12 +16,7 @@ do
 	for key in 64 128 256
 	#for key in 64 
 	do
-		sudo ./simulator $key $speed $Dvnet $Dpnet DMT $Dtopo &
-		sudo ./simulator $key $speed $Dvnet $Dpnet DMTe2e $Dtopo & 
-		sudo ./simulator $key $speed $Dvnet $Dpnet DMTe3e $Dtopo & 
-		sudo ./simulator $key $speed $Dvnet $Dpnet SMT $Dtopo & 
-		sudo ./simulator $key $speed $Dvnet $Dpnet IDEAL $Dtopo & 
-		sudo ./simulator $key $speed $Dvnet $Dpnet OVX $Dtopo & 
+		sudo sh ./JobChild.sh $key $speed $Dvnet $Dpnet $Dtopo & 
 	done
 done
 

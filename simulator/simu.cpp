@@ -371,13 +371,13 @@ const unsigned Vnet::GetAllocResource()
 
 unsigned WidthAligning(unsigned width, std::vector<unsigned>& widthsOption)
 {
-	for(size_t i = 0; i<6; i++)
+	for(size_t i = 0; i<widthsOption.size(); i++)
 	{
 		if(width <= widthsOption[i]){
 			return widthsOption[i];
 		}
 	}
-	return 1024;
+	return *(widthsOption.end()-1);
 }
 
 void Vnet::AssignNet(rapidjson::Value& val, GlobalIDMaster& gm, 
@@ -479,7 +479,7 @@ void Pnet::AssignNet(rapidjson::Value& val, GlobalIDMaster* pgm)
 	assert(val["widths"].IsArray());
 	std::vector<int> cap, width;
 	std::vector<unsigned> Uwidth;
-	unsigned resource_per_switch = 0;
+	long long resource_per_switch = 0;
 	for(rapidjson::SizeType i = 0; i<val["pipeline"].Size(); i++)
 	{
 		rapidjson::Value& v = val["pipeline"][i];
@@ -487,7 +487,8 @@ void Pnet::AssignNet(rapidjson::Value& val, GlobalIDMaster* pgm)
 		cap.push_back(v["capacity"].GetInt());
 		resource_per_switch += v["capacity"].GetInt();
 	}
-	this->resource = resource_per_switch * val["node"].GetUint();
+	unsigned sw_num = val["node"].GetUint();
+	this->resource = resource_per_switch * sw_num;
 
 	for(rapidjson::SizeType i = 0; i<val["widths"].Size(); i++)
 	{
