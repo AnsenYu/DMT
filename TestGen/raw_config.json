@@ -1,0 +1,47 @@
+{
+	"max_time_window":10
+	,
+	"pnet":{
+		"node":1000,
+		"pipeline":
+		[
+			{
+				"capacity":1024000
+			}	
+		],
+		"widths":
+		[40,80,160,320,640]
+	}
+,
+	"vnets":[
+		{
+			"vnetID":1,
+			"start":1,
+			"end":5,
+			"config":
+			{
+				"smartkey":false,
+				"stagesplit":false,
+				"nodesplit":false
+			}
+			,
+			"switches":
+			[
+				{
+					"pipeline":
+					[
+						{
+							"depth":200,
+							"width":256
+						}				
+					]
+				}
+			]
+			,
+			"paths":
+			[
+				{"path":[]}
+			]
+		}
+	]
+}
