@@ -40,6 +40,7 @@ Document d;
 
 int max_time_wnd = 0;
 
+int STRICT_PIPELINE_LIMIT = 0;
 
 void ReadTestConfig();
 void PrintDOM(Document& dom, const char* fileName);
@@ -180,7 +181,12 @@ void ModifyVnets(Value& v, singleConf& c)
 				Value stage(newSw["pipeline"][0], d.GetAllocator());
 				newSw["pipeline"].PopBack();
 				int pLen = U_Random() * c.pipeline_len * 2;
-				while(pLen < 1){pLen = U_Random() * c.pipeline_len * 2;}
+				while(1){
+					pLen = U_Random() * c.pipeline_len * 2;
+					if(pLen < 1)continue;
+					if(STRICT_PIPELINE_LIMIT && pLen > c.pnode_stage_num) continue;
+					break;
+				}
 				for(int j = 0; j<pLen; j++)
 				{
 					Value newStage(stage, d.GetAllocator());

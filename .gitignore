@@ -1,0 +1,9 @@
+*.o
+*.txt
+TestGen/Data/*
+TestGen/DataArchive/*
+simulator/ResultArchive/*
+*.json
+!TestGen/raw_config.json
+*.tar.gz
+*.vcxproj*
