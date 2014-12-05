@@ -17,7 +17,7 @@ extern const char* method_name[];
 extern int CHILD_TTL;
 
 
-const int MAX_LINE_WIDTH = 1024;
+extern int MAX_LINE_WIDTH;
 const int MAX_GLOBAL_VNODE = 65535;
 
 

@@ -3,6 +3,7 @@
 #include <math.h>
 #include <iostream>
 
+int MAX_LINE_WIDTH = 640;
 int MAXIMUN_TIME_WINDOW = 0; //按可能的最晚结束的vnet的Tend来决定
 unsigned method_ID = 0; //
 const char* method_name[] = {"NONE", "DMT", "DMTe2e", "DMTe3e", "SMT", "IDEAL", "OVX"};
@@ -497,6 +498,7 @@ void Pnet::AssignNet(rapidjson::Value& val, GlobalIDMaster* pgm)
 		Uwidth.push_back(v.GetUint());
 	}
 	this->widthsOption = Uwidth;
+	MAX_LINE_WIDTH = *(Uwidth.end()-1); 
 	this->AssignNet(val["node"].GetUint(), cap, width);
 }
 
