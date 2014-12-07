@@ -9,7 +9,7 @@
 #include "rapidjson/writer.h"
 
 using namespace std;
-enum{NONE=0, DMT, DMTe2e, DMTe3e, SMT, IDEAL, OVX};
+enum{NONE=0, DMT, DMTe2e, DMTe3e, SMT, IDEAL, OVX, DMT_WO_O2M, DMT_WO_M2O};
 
 extern int MAXIMUN_TIME_WINDOW;
 extern unsigned method_ID;
@@ -223,7 +223,7 @@ public:
 	}
 	void Process(char* test_name, double acceptRatio)
 	{
-		if(method_ID == DMT || method_ID == SMT || method_ID == IDEAL || method_ID == OVX)
+		if(method_ID == DMT || method_ID == SMT || method_ID == IDEAL || method_ID == OVX || method_ID == DMT_WO_O2M || method_ID == DMT_WO_M2O)
 		{
 			// output TCAM size
 			string str(test_name);

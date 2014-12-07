@@ -63,6 +63,14 @@ int main(int argc, char* argv[]) {
 	{
 		method_ID = OVX;
 	}
+	else if(str == "DMT_WO_O2M")
+	{
+		method_ID = DMT_WO_O2M;
+	}
+	else if(str == "DMT_WO_M2O")
+	{
+		method_ID = DMT_WO_M2O;
+	}
 	else
 	{
 		printf("Error method name");
