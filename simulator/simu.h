@@ -9,7 +9,7 @@
 #include "rapidjson/writer.h"
 
 using namespace std;
-enum{NONE=0, DMT, DMTe2e, DMTe3e, SMT, IDEAL, OVX, DMT_WO_O2M, DMT_WO_M2O};
+enum{NONE=0, DMT, DMTe2e, DMTe3e, SMT, IDEAL, OVX, DMT_WO_O2M, DMT_WO_M2O, DMT_SPREAD};
 
 extern int MAXIMUN_TIME_WINDOW;
 extern unsigned method_ID;
@@ -169,6 +169,7 @@ public:
 	std::vector<unsigned> widthsOption;
 	GlobalIDMaster* pgm;
 	void NodeLoadDistribution(std::vector<double>& dstribution);
+	void NodeLoadSort(std::vector<unsigned>& sorted_index);
 	unsigned NodeSumLoad();
 	unsigned NodeSumCapacity();
 	void AssignNet(unsigned num, std::vector<int>& capacity, std::vector<int>& width);
@@ -223,7 +224,7 @@ public:
 	}
 	void Process(char* test_name, double acceptRatio)
 	{
-		if(method_ID == DMT || method_ID == SMT || method_ID == IDEAL || method_ID == OVX || method_ID == DMT_WO_O2M || method_ID == DMT_WO_M2O)
+		if(method_ID == DMT || method_ID == SMT || method_ID == IDEAL || method_ID == OVX || method_ID == DMT_WO_O2M || method_ID == DMT_WO_M2O || method_ID == DMT_SPREAD )
 		{
 			// output TCAM size
 			string str(test_name);
@@ -273,7 +274,7 @@ public:
 			fout.close();
 		}
 
-		if(method_ID == DMT || method_ID == DMTe2e || method_ID == DMTe3e)
+		if(method_ID == DMT || method_ID == DMTe2e || method_ID == DMTe3e || method_ID == DMT_WO_M2O || method_ID == DMT_SPREAD)
 		{
 			// output virtual path stretch ratio
 			string str(test_name);

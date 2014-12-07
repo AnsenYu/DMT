@@ -6,7 +6,7 @@
 int MAX_LINE_WIDTH = 640;
 int MAXIMUN_TIME_WINDOW = 0; //按可能的最晚结束的vnet的Tend来决定
 unsigned method_ID = 0; //
-const char* method_name[] = {"NONE", "DMT", "DMTe2e", "DMTe3e", "SMT", "IDEAL", "OVX", "DMT_WO_O2M", "DMT_WO_M2O"};
+const char* method_name[] = {"NONE", "DMT", "DMTe2e", "DMTe3e", "SMT", "IDEAL", "OVX", "DMT_WO_O2M", "DMT_WO_M2O", "DMT_SPREAD"};
 int CHILD_TTL = 9999;
 
 /*Class Config**************************/
@@ -527,10 +527,23 @@ bool Pnet::PushVnet(Vnet& vnet, GlobalIDMaster& gm)
 	while(!vnet.Empty())
 	{
 		Vnode* pvnode = vnet.PopVnode();
-		size_t i;
+		size_t i = 0, idx = 0;
+		std::vector<unsigned> sorted_index;
+		this->NodeLoadSort(sorted_index);
 		//尽可能地把序号小的pnode先塞满，然后再选择后面的
-		for(i = 0; i<this->pnodes.size(); i++)
+		while(1)
 		{
+			if(method_ID == DMT_SPREAD)
+			{
+				if(idx >= this->pnodes.size()) break;
+				i = sorted_index[idx];
+			}
+			else
+			{
+				if(idx >= this->pnodes.size()) break;
+				i = idx;
+			}
+
 			// no many-to-1
 			if((method_ID == OVX || method_ID == DMT_WO_M2O) && pnodeUsed[i] == true) continue;
 			Vnode* childVnode = NULL;
@@ -543,8 +556,9 @@ bool Pnet::PushVnet(Vnet& vnet, GlobalIDMaster& gm)
 				}
 				break; //get out of FOR loop
 			}
+			idx++;
 		}
-		if(i<this->pnodes.size())
+		if(idx<this->pnodes.size())
 		{
 			continue;
 		}
@@ -599,6 +613,34 @@ unsigned Pnet::NodeSumLoad()
 		sum += this->pnodes[i]->GetAbsLoad();
 	}
 	return sum;
+}
+
+typedef struct
+{
+	int idx;
+	unsigned ld;
+}node_cap;
+std::vector<node_cap> load(1000);
+bool loadCmp(const node_cap n1, const node_cap n2){return n1.ld < n2.ld;}
+
+void Pnet::NodeLoadSort(std::vector<unsigned>& sorted_index)
+{
+	if(this->pnodes.size() > 1000)
+	{
+		std::cout<<"pnode must < 1000\n";
+		assert(this->pnodes.size()<1000);
+	}
+	sorted_index.clear();
+	for(size_t i = 0; i<this->pnodes.size(); i++)
+	{
+		load[i].idx = i;
+		load[i].ld = (this->pnodes[i]->GetAbsLoad());
+	}
+	sort(load.begin(),load.begin()+this->pnodes.size(), loadCmp);
+	for(size_t i = 0; i<this->pnodes.size(); i++)
+	{
+		sorted_index.push_back(load[i].idx);
+	}
 }
 
 unsigned Pnet::NodeSumCapacity()
