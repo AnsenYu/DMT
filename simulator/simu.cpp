@@ -6,7 +6,7 @@
 int MAX_LINE_WIDTH = 640;
 int MAXIMUN_TIME_WINDOW = 0; //按可能的最晚结束的vnet的Tend来决定
 unsigned method_ID = 0; //
-const char* method_name[] = {"NONE", "DMT", "DMTe2e", "DMTe3e", "SMT", "IDEAL", "OVX", "DMT_WO_O2M", "DMT_WO_M2O", "DMT_SPREAD"};
+const char* method_name[] = {"NONE", "DMT", "DMTe2e", "DMTe3e", "SMT", "IDEAL", "OVX", "DMT_WO_O2M", "DMT_WO_M2O", "DMT_SPREAD", "DMT_SPREAD_WO_M2O"};
 int CHILD_TTL = 9999;
 
 /*Class Config**************************/
@@ -533,7 +533,7 @@ bool Pnet::PushVnet(Vnet& vnet, GlobalIDMaster& gm)
 		//尽可能地把序号小的pnode先塞满，然后再选择后面的
 		while(1)
 		{
-			if(method_ID == DMT_SPREAD)
+			if(method_ID == DMT_SPREAD || method_ID == DMT_SPREAD_WO_M2O)
 			{
 				if(idx >= this->pnodes.size()) break;
 				i = sorted_index[idx];
@@ -545,7 +545,11 @@ bool Pnet::PushVnet(Vnet& vnet, GlobalIDMaster& gm)
 			}
 
 			// no many-to-1
-			if((method_ID == OVX || method_ID == DMT_WO_M2O) && pnodeUsed[i] == true) continue;
+			if((method_ID == OVX || method_ID == DMT_WO_M2O || method_ID == DMT_SPREAD_WO_M2O) && pnodeUsed[i] == true) 
+			{
+				idx += 1;
+				continue;
+			}
 			Vnode* childVnode = NULL;
 			if(this->pnodes[i]->push(*pvnode, conf, gm, childVnode))
 			{

@@ -10,7 +10,7 @@ Dvnet=80
 Dpnet=980
 Dtopo=../TopoGen/$1.txt
 
-sudo rm Result/*
+sudo rm Result/*.txt
 
 for speed in 1 2 4 8 16 32 64 128 256
 #for speed in 1 
