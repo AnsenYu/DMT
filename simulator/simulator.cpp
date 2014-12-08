@@ -83,6 +83,14 @@ int main(int argc, char* argv[]) {
 	{
 		method_ID = SMT_WO_M2O;
 	}
+	else if(str == "DMT_GD")
+	{
+		method_ID = DMT_GD;
+	}
+	else if(str == "DMT_GD_WO_O2M")
+	{
+		method_ID = DMT_GD_WO_O2M;
+	}
 	else
 	{
 		printf("Error method name");

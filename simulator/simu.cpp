@@ -6,7 +6,7 @@
 int MAX_LINE_WIDTH = 640;
 int MAXIMUN_TIME_WINDOW = 0; //按可能的最晚结束的vnet的Tend来决定
 unsigned method_ID = 0; //
-const char* method_name[] = {"NONE", "DMT", "DMTe2e", "DMTe3e", "SMT", "IDEAL", "OVX", "DMT_WO_O2M", "DMT_WO_M2O", "DMT_SPREAD", "DMT_SPREAD_WO_M2O", "SMT_WO_M2O"};
+const char* method_name[] = {"NONE", "DMT", "DMTe2e", "DMTe3e", "SMT", "IDEAL", "OVX", "DMT_WO_O2M", "DMT_WO_M2O", "DMT_SPREAD", "DMT_SPREAD_WO_M2O", "SMT_WO_M2O", "DMT_GD", "DMT_GD_WO_O2M"};
 int CHILD_TTL = 9999;
 
 /*Class Config**************************/
@@ -408,7 +408,9 @@ void Vnet::AssignNet(rapidjson::Value& val, GlobalIDMaster& gm,
 		for(rapidjson::SizeType j = 0; j<v.Size(); j++)
 		{
 			//第i个vswitch的第j级pipeline的宽度和深度
-			depthPerSwitch[i].push_back(v[j]["depth"].GetInt());
+			int d = v[j]["depth"].GetInt();
+			if(d == 0) d = 1;
+			depthPerSwitch[i].push_back(d);
 			widthPerSwitch[i].push_back(v[j]["width"].GetInt());
 
 			this->resource += v[j]["depth"].GetInt() * WidthAligning(v[j]["width"].GetUint(), widthsOptin);
@@ -519,6 +521,101 @@ void Pnet::PopVnetIdeal(Vnet* pvnet)
 	this->resource += res;
 }
 
+bool Pnode::CalCost(Vnode v, double& cost)
+{
+	bool touched = false;
+	unsigned alloc = 0;
+	unsigned occupy = 0;
+	size_t j = 0, i = 0;
+	std::vector<unsigned> uWidOpt;
+	for(size_t k = 0; k<this->widthOption.size(); k++)
+	{
+		uWidOpt.push_back(this->widthOption[k]);
+	}
+	while(i<v.depth.size() && j<this->depthPerStage.size())
+	{
+		unsigned wid = WidthAligning(v.width[i], uWidOpt);
+		if(this->statePerStage[j])//free
+		{
+			unsigned availableLine = this->capaPerStage[j]/wid;
+			if(availableLine >= v.depth[i])
+			{
+				alloc += v.depth[i] * wid;
+				occupy += v.depth[i] * wid;
+				i++;j++;
+			}
+			else
+			{
+				alloc += availableLine * wid;
+				occupy += availableLine * wid;
+				v.depth[i] -= availableLine;
+				j++;
+			}
+			continue;
+		}
+		
+		if(wid > this->widthPerStage[j])
+		{
+			j++;
+		}
+		else{
+			unsigned availableLine = this->depthPerStage[j];
+			if(availableLine >= v.depth[i])
+			{
+				alloc += v.depth[i] * wid;
+				occupy += v.depth[i] * this->widthPerStage[j];
+				i++;j++;
+			}
+			else
+			{
+				alloc += availableLine * wid;
+				occupy += availableLine * this->widthPerStage[j];
+				v.depth[i] -= availableLine;
+				j++;
+			}
+			continue;
+		}
+	}
+	if(method_ID == DMT_GD_WO_O2M && i < v.depth.size())
+	{
+		return false;
+	}
+	if(alloc == 0) return false;
+	
+	cost = (double)occupy / alloc;
+	return true;
+}
+
+bool Pnet::FindBestFitPnode(Vnode& vnode, unsigned& pnodeIdx)
+{
+	double mincost = 99999;
+	unsigned minIdx = 0;
+	bool found = false;
+	for(size_t i = 0; i<this->pnodes.size(); i++)
+	{
+		double cost;
+		if(this->pnodes[i]->CalCost(vnode,cost) && cost < mincost)
+		{
+			found = true;
+			mincost = cost;
+			minIdx = i; 
+			if(fabs(mincost-1)<0.0001)
+			{
+				break;	
+			}
+		}
+	}
+	if(found)
+	{
+		pnodeIdx = minIdx;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 bool Pnet::PushVnet(Vnet& vnet, GlobalIDMaster& gm)
 {
 	this->vnets.push_back(&vnet);
@@ -529,7 +626,35 @@ bool Pnet::PushVnet(Vnet& vnet, GlobalIDMaster& gm)
 		Vnode* pvnode = vnet.PopVnode();
 		size_t i = 0, idx = 0;
 		std::vector<unsigned> sorted_index;
-		this->NodeLoadSort(sorted_index);
+		if(method_ID == DMT_SPREAD || method_ID == DMT_SPREAD_WO_M2O)
+		{
+			this->NodeLoadSort(sorted_index);
+		}
+
+		if(method_ID == DMT_GD || method_ID == DMT_GD_WO_O2M)
+		{
+			unsigned bestnode;
+			if(this->FindBestFitPnode(*pvnode, bestnode))
+			{
+				Vnode* childVnode = NULL;
+				if(this->pnodes[bestnode]->push(*pvnode, conf, gm, childVnode))
+				{
+					if(childVnode != NULL)
+					{
+						vnet.PushNewVnode(childVnode); // add to virtual net
+					}
+					continue; //get out of FOR loop
+				}
+				std::cout<<"exception!";
+				assert(0);
+			}
+			else
+			{
+				this->PopVnet(&vnet);
+				return false;
+			}
+		}
+
 		//尽可能地把序号小的pnode先塞满，然后再选择后面的
 		while(1)
 		{

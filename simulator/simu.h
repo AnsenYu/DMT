@@ -9,7 +9,7 @@
 #include "rapidjson/writer.h"
 
 using namespace std;
-enum{NONE=0, DMT, DMTe2e, DMTe3e, SMT, IDEAL, OVX, DMT_WO_O2M, DMT_WO_M2O, DMT_SPREAD, DMT_SPREAD_WO_M2O, SMT_WO_M2O};
+enum{NONE=0, DMT, DMTe2e, DMTe3e, SMT, IDEAL, OVX, DMT_WO_O2M, DMT_WO_M2O, DMT_SPREAD, DMT_SPREAD_WO_M2O, SMT_WO_M2O, DMT_GD, DMT_GD_WO_O2M};
 
 extern int MAXIMUN_TIME_WINDOW;
 extern unsigned method_ID;
@@ -104,6 +104,7 @@ private:
 	void popVnode(unsigned vnodeID);
 	int chooseWidth(int width);
 public:
+	bool CalCost(Vnode v, double& cost);
 	GlobalIDMaster* pgm;
 	unsigned GetAbsLoad();
 	unsigned GetAbsCapacity();
@@ -168,6 +169,7 @@ private:
 public:
 	std::vector<unsigned> widthsOption;
 	GlobalIDMaster* pgm;
+	bool FindBestFitPnode(Vnode& vnode, unsigned& pnodeIdx);
 	void NodeLoadDistribution(std::vector<double>& dstribution);
 	void NodeLoadSort(std::vector<unsigned>& sorted_index);
 	unsigned NodeSumLoad();
@@ -224,7 +226,7 @@ public:
 	}
 	void Process(char* test_name, double acceptRatio)
 	{
-		if(method_ID == DMT || method_ID == SMT || method_ID == IDEAL || method_ID == OVX || method_ID == DMT_WO_O2M || method_ID == DMT_WO_M2O || method_ID == DMT_SPREAD || method_ID == DMT_SPREAD_WO_M2O || method_ID == SMT_WO_M2O)
+		if(method_ID == DMT || method_ID == SMT || method_ID == IDEAL || method_ID == OVX || method_ID == DMT_WO_O2M || method_ID == DMT_WO_M2O || method_ID == DMT_SPREAD || method_ID == DMT_SPREAD_WO_M2O || method_ID == SMT_WO_M2O || method_ID == DMT_GD || method_ID == DMT_GD_WO_O2M)
 		{
 			// output TCAM size
 			string str(test_name);
@@ -274,7 +276,7 @@ public:
 			fout.close();
 		}
 
-		if(method_ID == DMT || method_ID == DMTe2e || method_ID == DMTe3e || method_ID == DMT_WO_M2O || method_ID == DMT_SPREAD || method_ID == DMT_SPREAD_WO_M2O )
+		if(method_ID == DMT || method_ID == DMTe2e || method_ID == DMTe3e || method_ID == DMT_WO_M2O || method_ID == DMT_SPREAD || method_ID == DMT_SPREAD_WO_M2O || method_ID == DMT_GD )
 		{
 			// output virtual path stretch ratio
 			string str(test_name);
