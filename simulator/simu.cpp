@@ -6,7 +6,7 @@
 int MAX_LINE_WIDTH = 640;
 int MAXIMUN_TIME_WINDOW = 0; //按可能的最晚结束的vnet的Tend来决定
 unsigned method_ID = 0; //
-const char* method_name[] = {"NONE", "DMT", "DMTe2e", "DMTe3e", "SMT", "IDEAL", "OVX", "DMT_WO_O2M", "DMT_WO_M2O", "DMT_SPREAD", "DMT_SPREAD_WO_M2O"};
+const char* method_name[] = {"NONE", "DMT", "DMTe2e", "DMTe3e", "SMT", "IDEAL", "OVX", "DMT_WO_O2M", "DMT_WO_M2O", "DMT_SPREAD", "DMT_SPREAD_WO_M2O", "SMT_WO_M2O"};
 int CHILD_TTL = 9999;
 
 /*Class Config**************************/
@@ -104,7 +104,7 @@ bool Pnode::push(Vnode& v, Config& c, GlobalIDMaster& gm, Vnode*& leftover){
 	size_t i,j;
 	bool occupied = false;
 	for(i = 0, j = 0; i<depth.size() && j<vdepth.size();){
-		if(method_ID == SMT || method_ID == OVX)// no smart key
+		if(method_ID == SMT || method_ID == OVX || method_ID == SMT_WO_M2O)// no smart key
 		{
 			c.smartKey = false;
 		}
@@ -545,7 +545,7 @@ bool Pnet::PushVnet(Vnet& vnet, GlobalIDMaster& gm)
 			}
 
 			// no many-to-1
-			if((method_ID == OVX || method_ID == DMT_WO_M2O || method_ID == DMT_SPREAD_WO_M2O) && pnodeUsed[i] == true) 
+			if((method_ID == OVX || method_ID == DMT_WO_M2O || method_ID == DMT_SPREAD_WO_M2O || method_ID == SMT_WO_M2O) && pnodeUsed[i] == true) 
 			{
 				idx += 1;
 				continue;

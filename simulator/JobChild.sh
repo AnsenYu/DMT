@@ -17,6 +17,7 @@ sudo rm fin/Finish_key${key}_speed${speed}.txt
 #sudo ./simulator $key $speed $Dvnet $Dpnet DMT_WO_O2M $Dtopo 
 #sudo ./simulator $key $speed $Dvnet $Dpnet DMT_WO_M2O $Dtopo 
 #sudo ./simulator $key $speed $Dvnet $Dpnet DMT_SPREAD $Dtopo 
-sudo ./simulator $key $speed $Dvnet $Dpnet DMT_SPREAD_WO_M2O $Dtopo 
+#sudo ./simulator $key $speed $Dvnet $Dpnet DMT_SPREAD_WO_M2O $Dtopo 
+sudo ./simulator $key $speed $Dvnet $Dpnet SMT_WO_M2O $Dtopo 
 
 sudo touch fin/Finish_key${key}_speed${speed}.txt
