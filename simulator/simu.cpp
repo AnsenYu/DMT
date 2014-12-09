@@ -6,7 +6,7 @@
 int MAX_LINE_WIDTH = 640;
 int MAXIMUN_TIME_WINDOW = 0; //按可能的最晚结束的vnet的Tend来决定
 unsigned method_ID = 0; //
-const char* method_name[] = {"NONE", "DMT", "DMTe2e", "DMTe3e", "SMT", "IDEAL", "OVX", "DMT_WO_O2M", "DMT_WO_M2O", "DMT_SPREAD", "DMT_SPREAD_WO_M2O", "SMT_WO_M2O", "DMT_GD", "DMT_GD_WO_O2M"};
+const char* method_name[] = {"NONE", "DMT", "DMTe2e", "DMTe3e", "SMT", "IDEAL", "OVX", "DMT_WO_O2M", "DMT_WO_M2O", "DMT_SPREAD", "DMT_SPREAD_WO_M2O", "SMT_WO_M2O", "DMT_GD", "DMT_GD_WO_O2M", "DMT_GD_WO_M2O"};
 int CHILD_TTL = 9999;
 
 /*Class Config**************************/
@@ -586,7 +586,7 @@ bool Pnode::CalCost(Vnode v, double& cost)
 	return true;
 }
 
-bool Pnet::FindBestFitPnode(Vnode& vnode, unsigned& pnodeIdx)
+bool Pnet::FindBestFitPnode(Vnode& vnode, unsigned& pnodeIdx, const std::vector<bool>& NodesUsed)
 {
 	double mincost = 99999;
 	unsigned minIdx = 0;
@@ -594,8 +594,9 @@ bool Pnet::FindBestFitPnode(Vnode& vnode, unsigned& pnodeIdx)
 	for(size_t i = 0; i<this->pnodes.size(); i++)
 	{
 		double cost;
-		if(this->pnodes[i]->CalCost(vnode,cost) && cost < mincost)
+		if( this->pnodes[i]->CalCost(vnode,cost) && cost < mincost)
 		{
+			if(method_ID == DMT_GD_WO_M2O && NodesUsed[i]) continue;
 			found = true;
 			mincost = cost;
 			minIdx = i; 
@@ -631,10 +632,10 @@ bool Pnet::PushVnet(Vnet& vnet, GlobalIDMaster& gm)
 			this->NodeLoadSort(sorted_index);
 		}
 
-		if(method_ID == DMT_GD || method_ID == DMT_GD_WO_O2M)
+		if(method_ID == DMT_GD || method_ID == DMT_GD_WO_O2M || method_ID == DMT_GD_WO_M2O)
 		{
 			unsigned bestnode;
-			if(this->FindBestFitPnode(*pvnode, bestnode))
+			if(this->FindBestFitPnode(*pvnode, bestnode, pnodeUsed))
 			{
 				Vnode* childVnode = NULL;
 				if(this->pnodes[bestnode]->push(*pvnode, conf, gm, childVnode))
@@ -643,7 +644,8 @@ bool Pnet::PushVnet(Vnet& vnet, GlobalIDMaster& gm)
 					{
 						vnet.PushNewVnode(childVnode); // add to virtual net
 					}
-					continue; //get out of FOR loop
+					pnodeUsed[bestnode] = true;
+					continue; // next vnode
 				}
 				std::cout<<"exception!";
 				assert(0);
@@ -813,6 +815,7 @@ void Test::PeriodRun()
 			{
 				this->physicalNet.PopVnetIdeal(this->virtualNets[vnetid]);
 			}
+			this->pf.WorkingRequest -= this->virtualNets[vnetid]->GetResource();
 			std::vector<unsigned>::iterator itr = find(this->workingVnets.begin(),
 				this->workingVnets.end(), vnetid);
 			if(itr != this->workingVnets.end())
@@ -839,6 +842,7 @@ void Test::PeriodRun()
 				this->ProcessPerPushVnet(vnetid);
 				allocation = this->virtualNets[vnetid]->GetAllocResource();
 				this->pf.successVnetSize.push_back(this->virtualNets[vnetid]->GetOriginalVnetSize());
+				this->pf.WorkingRequest += this->virtualNets[vnetid]->GetResource();
 			}
 			this->pf.allocationPerVnet.push_back(allocation);
 			this->pf.allVnetSize.push_back(this->virtualNets[vnetid]->GetOriginalVnetSize());
@@ -928,6 +932,10 @@ void Test::ProcessPerTimeWindow()
 	if(this->workingVnets.size() > this->pf.maxServingVnets)
 	{
 		this->pf.maxServingVnets = this->workingVnets.size();
+	}
+	if(this->pf.WorkingRequest > this->pf.MaxWorkingRequest)
+	{
+		this->pf.MaxWorkingRequest = this->pf.WorkingRequest;
 	}
 
 	if(method_ID == IDEAL) return;

@@ -9,7 +9,7 @@
 #include "rapidjson/writer.h"
 
 using namespace std;
-enum{NONE=0, DMT, DMTe2e, DMTe3e, SMT, IDEAL, OVX, DMT_WO_O2M, DMT_WO_M2O, DMT_SPREAD, DMT_SPREAD_WO_M2O, SMT_WO_M2O, DMT_GD, DMT_GD_WO_O2M};
+enum{NONE=0, DMT, DMTe2e, DMTe3e, SMT, IDEAL, OVX, DMT_WO_O2M, DMT_WO_M2O, DMT_SPREAD, DMT_SPREAD_WO_M2O, SMT_WO_M2O, DMT_GD, DMT_GD_WO_O2M, DMT_GD_WO_M2O};
 
 extern int MAXIMUN_TIME_WINDOW;
 extern unsigned method_ID;
@@ -169,7 +169,7 @@ private:
 public:
 	std::vector<unsigned> widthsOption;
 	GlobalIDMaster* pgm;
-	bool FindBestFitPnode(Vnode& vnode, unsigned& pnodeIdx);
+	bool FindBestFitPnode(Vnode& vnode, unsigned& pnodeIdx, const std::vector<bool>& NodesUsed);
 	void NodeLoadDistribution(std::vector<double>& dstribution);
 	void NodeLoadSort(std::vector<unsigned>& sorted_index);
 	unsigned NodeSumLoad();
@@ -197,6 +197,8 @@ public:
 	std::vector<double> physicalpathStretchRaw;
 	//std::vector<double> vStretchDis;
 	//std::vector<double> pStretchDis;
+	long long WorkingRequest;
+	long long MaxWorkingRequest;
 
 	std::vector<double> LoadDistribution;//按10%分档
 	std::vector<double> LoadDistributionHD;//按1%分档
@@ -213,6 +215,8 @@ public:
 	{
 		maxServingVnets = 0;
 		maxUsedPnodes = 0;
+		WorkingRequest = 0;
+		MaxWorkingRequest = 0;
 	}
 	void regular(std::vector<double>& v)
 	{
@@ -226,7 +230,7 @@ public:
 	}
 	void Process(char* test_name, double acceptRatio)
 	{
-		if(method_ID == DMT || method_ID == SMT || method_ID == IDEAL || method_ID == OVX || method_ID == DMT_WO_O2M || method_ID == DMT_WO_M2O || method_ID == DMT_SPREAD || method_ID == DMT_SPREAD_WO_M2O || method_ID == SMT_WO_M2O || method_ID == DMT_GD || method_ID == DMT_GD_WO_O2M)
+		if(method_ID == DMT || method_ID == SMT || method_ID == IDEAL || method_ID == OVX || method_ID == DMT_WO_O2M || method_ID == DMT_WO_M2O || method_ID == DMT_SPREAD || method_ID == DMT_SPREAD_WO_M2O || method_ID == SMT_WO_M2O || method_ID == DMT_GD || method_ID == DMT_GD_WO_O2M || method_ID == DMT_GD_WO_M2O)
 		{
 			// output TCAM size
 			string str(test_name);
@@ -243,6 +247,13 @@ public:
 			str = str + test_name + "_" + method_name[method_ID] + "_MaxConcurrentVnets.txt";
 			fout.open(str.c_str());
 			fout<<this->maxServingVnets;
+			fout.close();
+		
+			// output max serving nets
+			str.clear();
+			str = str + test_name + "_" + method_name[method_ID] + "_MaxWorkingRequest.txt";
+			fout.open(str.c_str());
+			fout<<this->MaxWorkingRequest;
 			fout.close();
 		
 			// output physical paths length
