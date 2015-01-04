@@ -157,7 +157,7 @@ void ReadTestConfig(char* fname){
 
 void PrintDOM(Document& dom, char* fileName)
 {
-	assert(0 == access(fileName, 0));
+	//assert(0 == access(fileName, 0));
 	FILE* fpo = fopen(fileName, "wb"); // non-Windows use "r"
 	char writeBuffer[65536];
 	FileWriteStream os(fpo, writeBuffer, sizeof(writeBuffer));

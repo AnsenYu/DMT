@@ -882,12 +882,35 @@ void Test::PeriodRun()
 void Test::ProcessPerPushVnet(unsigned vnetid)
 {
 
+	Vnet* pvnet = this->virtualNets[vnetid];
+
 #ifdef MOD_JAN4
-	
-	;
+	std::vector<unsigned> NodeStart;// the physical node of the first deployed virtual switch
+	std::vector<unsigned> NodeEnd;
+	const std::vector<Vnode*> & vnodelist = pvnet->GetVnodes();
+	for(size_t i = 0; i<pvnet->GetOriginalNodeNum(); i++)
+	{
+		Vnode* ptr = vnodelist[i];
+		NodeStart.push_back(ptr->GetAlloc()->pnodeID);
+		
+		while(ptr->GetPchild())
+		{
+			ptr = ptr->GetPchild();
+		}
+		NodeEnd.push_back(ptr->GetAlloc()->pnodeID);
+	}
+
+	for(size_t i = 0; i<pvnet->GetOriginalNodeNum(); i++)
+	{
+		for(size_t j = 0; j<pvnet->neighbor[i].size(); j++)
+		{
+			size_t k = pvnet->neighbor[i][j];
+			unsigned vLinkLen = this->Dist[NodeEnd[i]][NodeStart[k]];
+			this->pf.vLinkDistr[vLinkLen]++;	
+		}
+	}
 #else
 	if(method_ID == IDEAL) return;
-	Vnet* pvnet = this->virtualNets[vnetid];
 	
 
 	//统计占用switch个数

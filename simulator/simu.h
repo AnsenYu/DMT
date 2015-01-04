@@ -146,7 +146,7 @@ public:
 	const unsigned GetTbegin(){return this->Tbegin;}
 	const unsigned GetTend(){return this->Tend;}
 	std::vector<std::vector<unsigned> >& GetPaths(){return this->paths;}
-	const unsigned GetOriginNodeNum(){return this->originNodeNum;}
+	const unsigned GetOriginalNodeNum(){return this->originNodeNum;}
 	const std::vector<Vnode*>& GetVnodes(){return this->vnodes;}
 
 	void AssignNet(rapidjson::Value& val, GlobalIDMaster& gm,
@@ -216,7 +216,7 @@ public:
 	std::vector<unsigned> acVnetPerTime;
 	unsigned acVnetCnt;
 
-	std::vector<unsigned> vLink
+	std::vector<unsigned> vLinkDistr;
 
 	std::vector<unsigned> allocationPerVnet;
 	
@@ -228,6 +228,7 @@ public:
 		maxUsedPnodes = 0;
 		WorkingRequest = 0;
 		MaxWorkingRequest = 0;
+		for(int i = 0; i<20; i++) vLinkDistr.push_back(0);
 	}
 	void regular(std::vector<double>& v)
 	{
@@ -260,13 +261,37 @@ public:
 			fout<<this->maxServingVnets;
 			fout.close();
 		
+			// output ac vnet per time window
+			str.clear();
+			str = str + test_name + "_" + method_name[method_ID] + "_acVnetPerTime.txt";
+			fout.open(str.c_str());
+			for(size_t i = 0; i<this->acVnetPerTime.size(); i++)
+			{
+				fout<<this->acVnetPerTime[i];
+			}
+			fout.close();
+
+			// output vlink length distribution
+			str.clear();
+			str = str + test_name + "_" + method_name[method_ID] + "_vLinkLenDistr.txt";
+			fout.open(str.c_str());
+			for(size_t i = 0; i<this->vLinkDistr.size(); i++)
+			{
+				fout<<this->vLinkDistr[i];
+			}
+			fout.close();
+
+		
+#if 0
 			// output max serving nets
 			str.clear();
 			str = str + test_name + "_" + method_name[method_ID] + "_MaxWorkingRequest.txt";
 			fout.open(str.c_str());
 			fout<<this->MaxWorkingRequest;
 			fout.close();
+#endif
 		
+#if 0
 			// output physical paths length
 			str.clear();
 			str = str + test_name + "_" + method_name[method_ID] + "_PhysicalPaths.txt";
@@ -276,6 +301,7 @@ public:
 				fout<<this->physicalpathStretchRaw[i]<<std::endl;
 			}
 			fout.close();
+#endif
 
 			// output working request
 			str.clear();
@@ -287,6 +313,7 @@ public:
 			}
 			fout.close();
 
+#if 0
 			// output success vnet size
 			str.clear();
 			str = str + test_name + "_" + method_name[method_ID] + "_VnetSize.txt";
@@ -296,7 +323,9 @@ public:
 				fout<<this->successVnetSize[i]<<std::endl;
 			}
 			fout.close();
+#endif
 
+#if 0
 			// output success vnet size
 			str.clear();
 			str = str + test_name + "_" + method_name[method_ID] + "_allVnetSize.txt";
@@ -306,10 +335,12 @@ public:
 				fout<<this->allVnetSize[i]<<std::endl;
 			}
 			fout.close();
+#endif
 		}
 
 		if(method_ID == DMT || method_ID == DMTe2e || method_ID == DMTe3e || method_ID == DMT_WO_M2O || method_ID == DMT_SPREAD || method_ID == DMT_SPREAD_WO_M2O || method_ID == DMT_GD )
 		{
+#if 0
 			// output virtual path stretch ratio
 			string str(test_name);
 			str = str + "_" + method_name[method_ID] + "_VpathStretch.txt";
@@ -318,13 +349,16 @@ public:
 				fout<<this->vpathStretchRaw[i]<<std::endl;
 			}
 			fout.close();
+#endif
 
+#if 0
 			// output accept ratio
 			str.clear();
 			str = str + test_name + "_" + method_name[method_ID] + "_AcceptRatio.txt";
 			fout.open(str.c_str());
 			fout<<acceptRatio;
 			fout.close();
+#endif
 		}
 	}
 		
@@ -353,7 +387,7 @@ public:
 		for(size_t i = 0; i<this->succedVnets.size(); i++)
 		{
 			unsigned vnetID = this->succedVnets[i];
-			cnt += (this->virtualNets[vnetID]->GetOriginNodeNum() == 
+			cnt += (this->virtualNets[vnetID]->GetOriginalNodeNum() == 
 				this->virtualNets[vnetID]->GetVnodes().size())?0:1;
 		}
 		return (double)cnt/this->succedVnets.size();
