@@ -136,6 +136,7 @@ private:
 	unsigned resource;
 public:
 	
+	const unsigned GetStackDepth(){return vnodesStack.size();}
 	std::vector<std::vector<int> > neighbor;
 	Config conf;
 	unsigned CountPhysicalNodes();

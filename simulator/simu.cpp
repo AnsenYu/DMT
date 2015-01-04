@@ -651,6 +651,7 @@ bool Pnet::PushVnet(Vnet& vnet, GlobalIDMaster& gm)
 	while(!vnet.Empty())
 	{
 		Vnode* pvnode = vnet.PopVnode();
+		size_t tmp = vnet.GetStackDepth();
 		size_t i = 0, idx = 0;
 		std::vector<unsigned> sorted_index;
 		if(method_ID == DMT_SPREAD || method_ID == DMT_SPREAD_WO_M2O)
@@ -865,7 +866,7 @@ void Test::PeriodRun()
 				this->succedVnets.push_back(vnetid);//记录成功插入的虚拟网络
 				this->workingVnets.push_back(vnetid);
 				this->VnetLeavePerTimeWindow[this->virtualNets[vnetid]->GetTend()].push_back(vnetid);//插入到弹出队列
-				this->ProcessPerPushVnet(vnetid);
+				if(method_ID != IDEAL) this->ProcessPerPushVnet(vnetid);
 				allocation = this->virtualNets[vnetid]->GetAllocResource();
 				//this->pf.successVnetSize.push_back(this->virtualNets[vnetid]->GetOriginalVnetSize());
 				this->pf.WorkingRequest += this->virtualNets[vnetid]->GetResource();

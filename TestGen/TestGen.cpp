@@ -190,7 +190,6 @@ void ModifyVnets(Value& v, singleConf& c)
 				newSw["pipeline"].PopBack();
 				//int pLen = U_Random() * c.pipeline_len * 2;
 				int pLen = ceil(U_Random() * c.pipeline_len);
-/*
 				while(1){
 					//pLen = U_Random() * c.pipeline_len * 2;
 					pLen = ceil(U_Random() * c.pipeline_len);
@@ -198,7 +197,7 @@ void ModifyVnets(Value& v, singleConf& c)
 					if(STRICT_PIPELINE_LIMIT && pLen > c.pnode_stage_num) continue;
 					break;
 				}
-*/
+
 				for(int j = 0; j<pLen; j++)
 				{
 					Value newStage(stage, d.GetAllocator());
