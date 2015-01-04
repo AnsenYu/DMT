@@ -19,7 +19,7 @@ echo Dtopo is $Dtopo
 sudo rm Result/*.txt
 
 #for speed in 1 2 4 8 16 32 64 128 256
-for speed in 1 2 4 8 16 32 64
+for speed in 1 2 4 8 16 32 64 128
 #for speed  in 8
 #for speed in 1 2 4 
 do 
