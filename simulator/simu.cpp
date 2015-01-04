@@ -3,11 +3,16 @@
 #include <math.h>
 #include <iostream>
 
+#define MOD_JAN4
+#define SCALE_FACTOR 10
 int MAX_LINE_WIDTH = 640;
 int MAXIMUN_TIME_WINDOW = 0; //按可能的最晚结束的vnet的Tend来决定
 unsigned method_ID = 0; //
 const char* method_name[] = {"NONE", "DMT", "DMTe2e", "DMTe3e", "SMT", "IDEAL", "OVX", "DMT_WO_O2M", "DMT_WO_M2O", "DMT_SPREAD", "DMT_SPREAD_WO_M2O", "SMT_WO_M2O", "DMT_GD", "DMT_GD_WO_O2M", "DMT_GD_WO_M2O"};
 int CHILD_TTL = 9999;
+bool NO_TOPO = false;
+unsigned g_pnet_size;
+unsigned default_pnetsize = 980;
 
 /*Class Config**************************/
 void Config::AssignConf(rapidjson::Value& val)
@@ -409,11 +414,22 @@ void Vnet::AssignNet(rapidjson::Value& val, GlobalIDMaster& gm,
 		{
 			//第i个vswitch的第j级pipeline的宽度和深度
 			int d = v[j]["depth"].GetInt();
-			if(d == 0) d = 1;
-			depthPerSwitch[i].push_back(d);
+			if(d == 0){ v[j]["depth"].SetInt(1);} 
+			else{
+				v[j]["depth"].SetInt(d*SCALE_FACTOR);
+			}
+			depthPerSwitch[i].push_back(v[j]["depth"].GetInt());
 			widthPerSwitch[i].push_back(v[j]["width"].GetInt());
 
 			this->resource += v[j]["depth"].GetInt() * WidthAligning(v[j]["width"].GetUint(), widthsOptin);
+		}
+		assert(val["switches"][i].HasMember("neighbor"));
+		rapidjson::Value& nb = val["switches"][i]["neighbor"];
+		this->neighbor.push_back(dummy);
+		std::vector<int> &Nb = *(this->neighbor.end() - 1);
+		for(rapidjson::SizeType j = 0; j<nb.Size(); j++)
+		{
+			Nb.push_back(nb[j].GetInt());
 		}
 	}
 	//this->AssignNet(val["vnetID"].GetUint(),val["switches"].Size(), depthPerSwitch, 
@@ -430,6 +446,7 @@ void Vnet::AssignNet(rapidjson::Value& val, GlobalIDMaster& gm,
 		this->PushNewVnode(newNode);
 	}
 
+#if 0
 	assert(val.HasMember("paths"));
 	assert(val["paths"].IsArray());
 	rapidjson::Value & paths = val["paths"];
@@ -442,6 +459,7 @@ void Vnet::AssignNet(rapidjson::Value& val, GlobalIDMaster& gm,
 			this->paths[i].push_back(paths[i]["path"][j].GetUint());
 		}
 	}
+#endif
 }
 
 unsigned Vnet::CountPhysicalNodes()
@@ -490,7 +508,15 @@ void Pnet::AssignNet(rapidjson::Value& val, GlobalIDMaster* pgm)
 		cap.push_back(v["capacity"].GetInt());
 		resource_per_switch += v["capacity"].GetInt();
 	}
-	unsigned sw_num = val["node"].GetUint();
+	unsigned sw_num;
+	if(NO_TOPO)
+	{
+		sw_num = g_pnet_size;	
+	}
+	else
+	{
+		sw_num = val["node"].GetUint();
+	}
 	this->resource = resource_per_switch * sw_num;
 
 	for(rapidjson::SizeType i = 0; i<val["widths"].Size(); i++)
@@ -501,7 +527,7 @@ void Pnet::AssignNet(rapidjson::Value& val, GlobalIDMaster* pgm)
 	}
 	this->widthsOption = Uwidth;
 	MAX_LINE_WIDTH = *(Uwidth.end()-1); 
-	this->AssignNet(val["node"].GetUint(), cap, width);
+	this->AssignNet(sw_num, cap, width);
 }
 
 bool Pnet::PushVnetIdeal(Vnet& vnet, GlobalIDMaster& gm)
@@ -841,11 +867,12 @@ void Test::PeriodRun()
 				this->VnetLeavePerTimeWindow[this->virtualNets[vnetid]->GetTend()].push_back(vnetid);//插入到弹出队列
 				this->ProcessPerPushVnet(vnetid);
 				allocation = this->virtualNets[vnetid]->GetAllocResource();
-				this->pf.successVnetSize.push_back(this->virtualNets[vnetid]->GetOriginalVnetSize());
+				//this->pf.successVnetSize.push_back(this->virtualNets[vnetid]->GetOriginalVnetSize());
 				this->pf.WorkingRequest += this->virtualNets[vnetid]->GetResource();
+				this->pf.acVnetCnt ++;
 			}
 			this->pf.allocationPerVnet.push_back(allocation);
-			this->pf.allVnetSize.push_back(this->virtualNets[vnetid]->GetOriginalVnetSize());
+			//this->pf.allVnetSize.push_back(this->virtualNets[vnetid]->GetOriginalVnetSize());
 		}
 		this->ProcessPerTimeWindow();
 	}
@@ -854,6 +881,11 @@ void Test::PeriodRun()
 
 void Test::ProcessPerPushVnet(unsigned vnetid)
 {
+
+#ifdef MOD_JAN4
+	
+	;
+#else
 	if(method_ID == IDEAL) return;
 	Vnet* pvnet = this->virtualNets[vnetid];
 	
@@ -891,7 +923,7 @@ void Test::ProcessPerPushVnet(unsigned vnetid)
 	}
 
 
-	if(1)
+	if(!NO_TOPO)
 	{
 	//统计pnode path延展比例
 	for(size_t i = 0; i<pvnet->GetPaths().size(); i++)
@@ -924,6 +956,8 @@ void Test::ProcessPerPushVnet(unsigned vnetid)
 		this->pf.physicalpathStretchRaw.push_back((double)pnode_path_len/(path.size()-1));
 	}
 	}
+#endif
+
 }
 
 
@@ -933,10 +967,17 @@ void Test::ProcessPerTimeWindow()
 	{
 		this->pf.maxServingVnets = this->workingVnets.size();
 	}
+	this->pf.vec_workingRequest.push_back(this->pf.WorkingRequest);
+
+#ifdef MOD_JAN4
+	this->pf.acVnetPerTime.push_back(this->pf.acVnetCnt);
+	this->pf.acVnetCnt = 0;
+#else
 	if(this->pf.WorkingRequest > this->pf.MaxWorkingRequest)
 	{
 		this->pf.MaxWorkingRequest = this->pf.WorkingRequest;
 	}
+#endif
 
 	if(method_ID == IDEAL) return;
 if(0)

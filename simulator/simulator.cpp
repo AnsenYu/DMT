@@ -28,6 +28,7 @@ int main(int argc, char* argv[]) {
 	if(argc != 7)	
 	{
 		printf("\nsimulator keylen speed vnetsize pnetsize method topologyfile\n");
+		printf("OR: simulator keylen speed vnetsize pnetsize method NO_TOPO \n");
 		return 0;
 	}
 	unsigned keylen, speed, vnetsize, pnetsize;
@@ -101,6 +102,12 @@ int main(int argc, char* argv[]) {
 		return 0;
 	}
 	char* topofile = argv[6];
+	if(0 == strcmp(topofile, "NO_TOPO"))
+	{
+		NO_TOPO = true;	
+		g_pnet_size = pnetsize;
+		pnetsize = default_pnetsize;
+	}
 
 
 	char fname[256];
@@ -116,17 +123,21 @@ int main(int argc, char* argv[]) {
 	Test test(d);
 	printf("Test init success!\n");
 
-	unsigned toposize = test.SetDistFromFile(topofile);
-	if(toposize < pnetsize)
+	if(!NO_TOPO)
 	{
-		printf("Error: topo is smaller than pnet");
-		return 0;
+		unsigned toposize = test.SetDistFromFile(topofile);
+		if(toposize < pnetsize)
+		{
+			printf("Error: topo is smaller than pnet");
+			return 0;
+		}
 	}
 
 	test.PeriodRun();
 
 	sprintf(fname,"Result/keylen%d_speed%d_vnet%d_pnet%d",
-		keylen, speed, vnetsize, pnetsize);
+		keylen, speed, vnetsize, NO_TOPO?g_pnet_size:pnetsize);
+
 	test.pf.Process(fname, test.GetSuccessRatio());
 	printf("\nEnd!\n");
 

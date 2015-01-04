@@ -15,6 +15,9 @@ extern int MAXIMUN_TIME_WINDOW;
 extern unsigned method_ID;
 extern const char* method_name[];
 extern int CHILD_TTL;
+extern bool NO_TOPO;
+extern unsigned g_pnet_size;
+extern unsigned default_pnetsize;
 
 
 extern int MAX_LINE_WIDTH;
@@ -133,6 +136,7 @@ private:
 	unsigned resource;
 public:
 	
+	std::vector<std::vector<int> > neighbor;
 	Config conf;
 	unsigned CountPhysicalNodes();
 	const unsigned GetOriginalVnetSize() {return this->originNodeNum;}
@@ -199,6 +203,7 @@ public:
 	//std::vector<double> pStretchDis;
 	long long WorkingRequest;
 	long long MaxWorkingRequest;
+	std::vector<long long> vec_workingRequest;
 
 	std::vector<double> LoadDistribution;//按10%分档
 	std::vector<double> LoadDistributionHD;//按1%分档
@@ -208,11 +213,17 @@ public:
 	unsigned maxServingVnets;
 	std::vector<unsigned> successVnetSize;
 	std::vector<unsigned> allVnetSize;
+	std::vector<unsigned> acVnetPerTime;
+	unsigned acVnetCnt;
+
+	std::vector<unsigned> vLink
 
 	std::vector<unsigned> allocationPerVnet;
+	
 
 	Profile()
 	{
+		acVnetCnt = 0;
 		maxServingVnets = 0;
 		maxUsedPnodes = 0;
 		WorkingRequest = 0;
@@ -263,6 +274,16 @@ public:
 			for(size_t i = 0; i<this->physicalpathStretchRaw.size(); i++)
 			{
 				fout<<this->physicalpathStretchRaw[i]<<std::endl;
+			}
+			fout.close();
+
+			// output working request
+			str.clear();
+			str = str + test_name + "_" + method_name[method_ID] + "_workingRequest.txt";
+			fout.open(str.c_str());
+			for(size_t i = 0; i<this->vec_workingRequest.size(); i++)
+			{
+				fout<<this->vec_workingRequest[i]<<std::endl;
 			}
 			fout.close();
 

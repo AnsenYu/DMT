@@ -11,6 +11,7 @@
 #include <cstdio>
 #include <iostream>
 //#include <io.h>
+#include <math.h>
 
 #include <limits>
 #include <set>
@@ -113,6 +114,8 @@ void GenerateLinkAndPaths(const int nodenum, const double prob, Value& net)
 			{
 				conn[i][j] = 1;
 				conn[j][i] = 1;
+				net["switches"][i]["neighbor"].PushBack(j, d.GetAllocator());
+				net["switches"][j]["neighbor"].PushBack(i, d.GetAllocator());
 			}
 		}
 	}
@@ -171,8 +174,13 @@ void ModifyVnets(Value& v, singleConf& c)
 			}
 			if(time + period > max_time_wnd){max_time_wnd = time + period;}
 			net["end"].SetInt(time + period);
-			int vnodeNum = U_Random() * c.vnet_size * 2;
-			while(vnodeNum < 2){vnodeNum = U_Random() * c.vnet_size * 2;}
+			//int vnodeNum = U_Random() * c.vnet_size * 2;
+			int vnodeNum = (U_Random() - 0.5)*4 + c.vnet_size;
+			//while(vnodeNum < 2){vnodeNum = U_Random() * c.vnet_size * 2;}
+			while(vnodeNum < 2)
+			{
+				vnodeNum = (U_Random() - 0.5)*4 + c.vnet_size;
+			}
 			Value sw(net["switches"][0], d.GetAllocator());
 			net["switches"].PopBack();
 			for(int i = 0; i<vnodeNum; i++)
@@ -180,13 +188,17 @@ void ModifyVnets(Value& v, singleConf& c)
 				Value newSw(sw, d.GetAllocator());
 				Value stage(newSw["pipeline"][0], d.GetAllocator());
 				newSw["pipeline"].PopBack();
-				int pLen = U_Random() * c.pipeline_len * 2;
+				//int pLen = U_Random() * c.pipeline_len * 2;
+				int pLen = ceil(U_Random() * c.pipeline_len);
+/*
 				while(1){
-					pLen = U_Random() * c.pipeline_len * 2;
+					//pLen = U_Random() * c.pipeline_len * 2;
+					pLen = ceil(U_Random() * c.pipeline_len);
 					if(pLen < 1)continue;
 					if(STRICT_PIPELINE_LIMIT && pLen > c.pnode_stage_num) continue;
 					break;
 				}
+*/
 				for(int j = 0; j<pLen; j++)
 				{
 					Value newStage(stage, d.GetAllocator());
@@ -209,7 +221,8 @@ void ModifyVnets(Value& v, singleConf& c)
 
 int main(int argc, char* argv[])
 {
-	printf("argc is %d\n", argc);
+	srand(time(0));
+	//printf("argc is %d\n", argc);
 	if(argc != 5)
 	{
 	    printf("\nEnter in this way, \"TestGen keylen speed vnetsize pnetsize\"\n");
@@ -220,8 +233,8 @@ int main(int argc, char* argv[])
 	unsigned vnetsize = atoi(argv[3]);
 	unsigned pnetsize = atoi(argv[4]);
 	
-	printf("Start!\n keylen = %d, speed = %d, vnetsize = %d, pnetsize = %d\n",
-		 keylen, speed, vnetsize, pnetsize);
+	//printf("Start!\n keylen = %d, speed = %d, vnetsize = %d, pnetsize = %d\n",
+	//		 keylen, speed, vnetsize, pnetsize);
 	Document::AllocatorType& allocator = d.GetAllocator();
 	
 	singleConf c;
@@ -261,9 +274,13 @@ int main(int argc, char* argv[])
 		sprintf(buffer, ".json");
 		fstr += buffer;
 		PrintDOM(d, fstr.c_str());
-		printf("outputfile is %s\n", fstr.c_str());
+		//printf("outputfile is %s\n", fstr.c_str());
+
+		char str_cmd[256];
+		sprintf(str_cmd, "touch Touch/%s", fstr.c_str());
+		system(str_cmd);
 	}
-	printf("End!\n");
+	//printf("End!\n");
 	return 0;
 }
 
