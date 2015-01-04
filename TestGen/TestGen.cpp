@@ -47,6 +47,16 @@ void ReadTestConfig();
 void PrintDOM(Document& dom, const char* fileName);
 void SetConfManual(singleConf& c, unsigned, unsigned, unsigned, unsigned);
 
+int WidthAlign(int w)
+{
+	int width[] = {40,80,160,320,640};
+	for(int i = 0; i<5; i++)
+	{
+		if(w<width[i]) return width[i];
+	}
+	return 640;
+}
+
 void ModifyPnet(Value& v, singleConf& c)
 {
 	assert(v.HasMember("node"));
@@ -205,7 +215,8 @@ void ModifyVnets(Value& v, singleConf& c)
 					//这里是设置virtual stage width的期望宽度
 					int width = randomExponential(c.keylen);
 					while(width < SHORTEST_KEY || width > LONGEST_KEY){width = randomExponential(c.keylen);}
-					int depth = U_Random() * c.stage_capa * c.stage_capacity / width;
+					int alignedWidth = WidthAlign(width);
+					int depth = U_Random() * c.stage_capa * c.stage_capacity / alignedWidth;
 					newStage["depth"].SetInt(depth);
 					newStage["width"].SetInt(width);
 					newSw["pipeline"].PushBack(newStage, d.GetAllocator());

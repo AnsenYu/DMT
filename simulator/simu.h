@@ -268,7 +268,7 @@ public:
 			fout.open(str.c_str());
 			for(size_t i = 0; i<this->acVnetPerTime.size(); i++)
 			{
-				fout<<this->acVnetPerTime[i];
+				fout<<this->acVnetPerTime[i]<<std::endl;
 			}
 			fout.close();
 
@@ -278,7 +278,7 @@ public:
 			fout.open(str.c_str());
 			for(size_t i = 0; i<this->vLinkDistr.size(); i++)
 			{
-				fout<<this->vLinkDistr[i];
+				fout<<this->vLinkDistr[i]<<std::endl;
 			}
 			fout.close();
 
