@@ -193,7 +193,7 @@ void ModifyVnets(Value& v, singleConf& c)
 			}
 			Value sw(net["switches"][0], d.GetAllocator());
 			net["switches"].PopBack();
-			for(int i = 0; i<vnodeNum; i++)
+			//for(int i = 0; i<vnodeNum; i++)
 			{
 				Value newSw(sw, d.GetAllocator());
 				Value stage(newSw["pipeline"][0], d.GetAllocator());
@@ -221,7 +221,8 @@ void ModifyVnets(Value& v, singleConf& c)
 					newStage["width"].SetInt(width);
 					newSw["pipeline"].PushBack(newStage, d.GetAllocator());
 				}
-				net["switches"].PushBack(newSw, d.GetAllocator());
+				for(int i = 0; i<vnodeNum; i++) // all virtual nodes are the same
+					net["switches"].PushBack(newSw, d.GetAllocator());
 			}
 			GenerateLinkAndPaths(vnodeNum, c.link_prob, net);
 			v.PushBack(net, d.GetAllocator());
