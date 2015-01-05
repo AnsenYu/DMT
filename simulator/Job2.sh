@@ -6,7 +6,7 @@ else
 
 Dkey=64
 Dspeed=128
-Dvnet=80
+Dvnet=160
 Dpnet=980
 
 if [ $1 = 'NO_TOPO' ]; then
@@ -24,8 +24,8 @@ for speed in 1 2 4 8 16 32 64 128
 #for speed in 1 2 4 
 do 
 	#for key in 8 16 32 64 128 256
-	for key in 8 16 32 64 128
-	#for key in 64
+	#for key in 8 16 32 64 128
+	for key in 64
 	do
 		if [ $Dtopo = 'NO_TOPO' ]; then
 			for pnet in 320 160 80 40 20
