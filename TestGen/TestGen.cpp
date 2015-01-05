@@ -169,6 +169,8 @@ void ModifyVnets(Value& v, singleConf& c)
 	Value rawVnet(v[0], d.GetAllocator());
 	v.PopBack();
 	int netID = 0;
+	bool bFirstTime = true;
+	Value globalSw;
 	for(int time = 1; time < MAX_TIME_WINDOW; time++)
 	{
 		int num = possion((double)c.vnet_per_time);
@@ -194,12 +196,16 @@ void ModifyVnets(Value& v, singleConf& c)
 			Value sw(net["switches"][0], d.GetAllocator());
 			net["switches"].PopBack();
 			//for(int i = 0; i<vnodeNum; i++)
+			Value newSw(sw, d.GetAllocator());
+			//if(bFirstTime)
 			{
-				Value newSw(sw, d.GetAllocator());
+				bFirstTime = false;
 				Value stage(newSw["pipeline"][0], d.GetAllocator());
 				newSw["pipeline"].PopBack();
 				//int pLen = U_Random() * c.pipeline_len * 2;
-				int pLen = ceil(U_Random() * c.pipeline_len);
+				//int pLen = ceil(U_Random() * c.pipeline_len);
+				int pLen = c.pipeline_len;
+/*
 				while(1){
 					//pLen = U_Random() * c.pipeline_len * 2;
 					pLen = ceil(U_Random() * c.pipeline_len);
@@ -207,6 +213,7 @@ void ModifyVnets(Value& v, singleConf& c)
 					if(STRICT_PIPELINE_LIMIT && pLen > c.pnode_stage_num) continue;
 					break;
 				}
+*/
 
 				for(int j = 0; j<pLen; j++)
 				{
@@ -221,8 +228,17 @@ void ModifyVnets(Value& v, singleConf& c)
 					newStage["width"].SetInt(width);
 					newSw["pipeline"].PushBack(newStage, d.GetAllocator());
 				}
-				for(int i = 0; i<vnodeNum; i++) // all virtual nodes are the same
-					net["switches"].PushBack(newSw, d.GetAllocator());
+				//globalSw.CopyFrom(newSw, d.GetAllocator());
+			}
+/*
+			else{
+				newSw.CopyFrom(globalSw, d.GetAllocator());
+			}
+*/
+			for(int i = 0; i<vnodeNum; i++) // all virtual nodes are the same
+			{
+				Value tmpnewSw(newSw, d.GetAllocator());
+				net["switches"].PushBack(tmpnewSw, d.GetAllocator());
 			}
 			GenerateLinkAndPaths(vnodeNum, c.link_prob, net);
 			v.PushBack(net, d.GetAllocator());

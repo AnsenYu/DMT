@@ -25,7 +25,7 @@ for speed in 1 2 4 8 16 32 64 128
 do 
 	#for key in 8 16 32 64 128 256
 	for key in 8 16 32 64 128
-	#for key in 16 
+	#for key in 64
 	do
 		if [ $Dtopo = 'NO_TOPO' ]; then
 			for pnet in 320 160 80 40 20

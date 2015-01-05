@@ -8,12 +8,17 @@ Dtopo=$5
 
 sudo rm fin/Finish_key${key}_speed${speed}.txt
 
+#sudo ./simulator $key $speed $Dvnet $Dpnet SMT $Dtopo & 
+#sudo ./simulator $key $speed $Dvnet $Dpnet IDEAL $Dtopo &  
+#sudo ./simulator $key $speed $Dvnet $Dpnet DMT_GD $Dtopo &
+#sudo ./simulator $key $speed $Dvnet $Dpnet DMT_GD_WO_O2M $Dtopo &
+#sudo ./simulator $key $speed $Dvnet $Dpnet DMT_GD_WO_M2O $Dtopo &
+
 sudo ./simulator $key $speed $Dvnet $Dpnet SMT $Dtopo  
-sudo ./simulator $key $speed $Dvnet $Dpnet IDEAL $Dtopo  
+sudo ./simulator $key $speed $Dvnet $Dpnet IDEAL $Dtopo   
 sudo ./simulator $key $speed $Dvnet $Dpnet DMT_GD $Dtopo 
 sudo ./simulator $key $speed $Dvnet $Dpnet DMT_GD_WO_O2M $Dtopo 
 sudo ./simulator $key $speed $Dvnet $Dpnet DMT_GD_WO_M2O $Dtopo 
-
 
 
 #sudo ./simulator $key $speed $Dvnet $Dpnet DMT $Dtopo 
